@@ -15,7 +15,7 @@ jobs:
       postgres:
         image: postgres
         env:
-          POSTGRES_ROOT: root
+          POSTGRES_USER: root
           POSTGRES_PASSWORD: secret
           POSTGRES_DB: simple_bank
         ports:
