@@ -9,13 +9,15 @@ import (
 
 	_ "github.com/lib/pq"
 
+	"github.com/mgo/banksystem/api"
 	db "github.com/mgo/banksystem/db/sqlc"
 	"github.com/mgo/banksystem/tool"
 )
 
 const (
-	dbDriver = "postgres"
-	dbSource = "postgresql://root:secret@postgres-docker-service:5432/simple_bank?sslmode=disable"
+	dbDriver      = "postgres"
+	dbSource      = "postgresql://root:secret@postgres-docker-service:5432/simple_bank?sslmode=disable"
+	serverAddress = "0.0.0.0:8082"
 )
 
 var mainQueries *db.Queries
@@ -58,10 +60,25 @@ func headers(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func main() {
 
-	http.HandleFunc("/hello", hello)
-	http.HandleFunc("/headers", headers)
-	connectDB() // if don't call this line before Listen is will get error invalid memory address or nil pointer dereference
-	http.ListenAndServe(":8082", nil)
+// func main() {
+
+// 	http.HandleFunc("/hello", hello)
+// 	http.HandleFunc("/headers", headers)
+// 	connectDB() // if don't call this line before Listen is will get error invalid memory address or nil pointer dereference
+// 	http.ListenAndServe(":8082", nil)
+// }
+
+func main() {
+	conn, err := sql.Open(dbDriver, dbSource)
+	if err != nil {
+		log.Fatal("cannot connect to db:", err)
+	}
+	store := db.New(conn)
+	server := api.NewServer(store)
+
+	err = server.Start(serverAddress)
+	if err != nil {
+		log.Fatal("can't start server with gin", err)
+	}
 }
