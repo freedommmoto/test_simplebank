@@ -9,9 +9,9 @@ import (
 
 	_ "github.com/lib/pq"
 
-	"github.com/mgo/banksystem/api"
-	db "github.com/mgo/banksystem/db/sqlc"
-	"github.com/mgo/banksystem/tool"
+	"github.com/freedommmoto/test_simplebank/api"
+	db "github.com/freedommmoto/test_simplebank/db/sqlc"
+	"github.com/freedommmoto/test_simplebank/tool"
 )
 
 const (
@@ -59,7 +59,6 @@ func headers(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 }
-
 
 // func main() {
 

@@ -10,7 +10,7 @@ RUN chmod +x migrate
 #last stage
 FROM alpine:3.13
 WORKDIR /app
-COPY --from=builder /app/banksystem .
+COPY --from=builder /app/test_simplebank .
 COPY --from=builder /app/migrate ./migrate
 COPY start.sh .
 COPY db/migration /app/db/migration
@@ -18,7 +18,7 @@ COPY wait-forv2.2.3.sh /app/wait-forv2.2.3.sh
 # RUN ./banksystem
 
 EXPOSE 8082
-CMD ["/app/banksystem"]
+CMD ["/app/test_simplebank"]
 ENTRYPOINT [ "/app/start.sh" ]
 
 

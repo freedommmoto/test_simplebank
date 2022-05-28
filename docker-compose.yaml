@@ -19,4 +19,4 @@ services:
     depends_on:
       - postgres-docker-service
     entrypoint: [ "/app/wait-forv2.2.3.sh" , "postgres-docker-service:5432" , "--" , "/app/start.sh" ]
-    command: [ /app/banksystem ]
+    command: [ /app/test_simplebank ]

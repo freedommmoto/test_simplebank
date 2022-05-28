@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mgo/banksystem/tool"
+	tool "github.com/freedommmoto/test_simplebank/tool"
 	"github.com/stretchr/testify/assert"
 )
 
