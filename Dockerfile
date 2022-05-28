@@ -2,6 +2,7 @@
 FROM golang:1.18-alpine3.15 as builder
 WORKDIR /app
 COPY . .
+RUN go get -u ./...
 RUN go build
 RUN apk add curl
 RUN curl -L https://github.com/golang-migrate/migrate/releases/download/v4.15.2/migrate.linux-amd64.tar.gz | tar xvz
