@@ -25,3 +25,9 @@ UPDATE customer_accounts
 SET balance = $2
 WHERE id = $1 
 RETURNING *;
+
+-- name: UpdateCustomerCurrency :one
+UPDATE customer_accounts
+SET currency = $2
+WHERE id = $1 
+RETURNING *;
