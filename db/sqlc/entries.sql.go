@@ -10,22 +10,17 @@ import (
 )
 
 const createEntries = `-- name: CreateEntries :one
-INSERT INTO entries (
-  id, customer_id , amount
-) VALUES (
-  $1, $2 , $3
-)
-RETURNING id, customer_id, amount, created_at
+INSERT INTO entries (customer_id, amount)
+VALUES ($1, $2) RETURNING id, customer_id, amount, created_at
 `
 
 type CreateEntriesParams struct {
-	ID         int64 `json:"id"`
 	CustomerID int64 `json:"customer_id"`
 	Amount     int64 `json:"amount"`
 }
 
 func (q *Queries) CreateEntries(ctx context.Context, arg CreateEntriesParams) (Entry, error) {
-	row := q.db.QueryRowContext(ctx, createEntries, arg.ID, arg.CustomerID, arg.Amount)
+	row := q.db.QueryRowContext(ctx, createEntries, arg.CustomerID, arg.Amount)
 	var i Entry
 	err := row.Scan(
 		&i.ID,
@@ -37,7 +32,8 @@ func (q *Queries) CreateEntries(ctx context.Context, arg CreateEntriesParams) (E
 }
 
 const listEntries = `-- name: ListEntries :one
-SELECT id, customer_id, amount, created_at FROM entries
+SELECT id, customer_id, amount, created_at
+FROM entries
 WHERE id = $1 LIMIT 1
 `
 
@@ -54,7 +50,8 @@ func (q *Queries) ListEntries(ctx context.Context, id int64) (Entry, error) {
 }
 
 const listEntriesByCustomerID = `-- name: ListEntriesByCustomerID :many
-SELECT id, customer_id, amount, created_at FROM entries
+SELECT id, customer_id, amount, created_at
+FROM entries
 WHERE customer_id = $1
 `
 

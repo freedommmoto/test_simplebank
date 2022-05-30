@@ -7,32 +7,21 @@ package db
 
 import (
 	"context"
-	"database/sql"
 )
 
 const createTransaction = `-- name: CreateTransaction :one
-INSERT INTO transaction (
-  id, from_customer_accounts , to_customer_accounts , amount
-) VALUES (
-  $1, $2 , $3 , $4
-)
-RETURNING id, from_customer_accounts, to_customer_accounts, amount, created_at
+INSERT INTO transaction (from_customer_accounts, to_customer_accounts, amount)
+VALUES ($1, $2, $3) RETURNING id, from_customer_accounts, to_customer_accounts, amount, created_at
 `
 
 type CreateTransactionParams struct {
-	ID                   int64         `json:"id"`
-	FromCustomerAccounts sql.NullInt64 `json:"from_customer_accounts"`
-	ToCustomerAccounts   sql.NullInt64 `json:"to_customer_accounts"`
-	Amount               int64         `json:"amount"`
+	FromCustomerAccounts int64 `json:"from_customer_accounts"`
+	ToCustomerAccounts   int64 `json:"to_customer_accounts"`
+	Amount               int64 `json:"amount"`
 }
 
 func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionParams) (Transaction, error) {
-	row := q.db.QueryRowContext(ctx, createTransaction,
-		arg.ID,
-		arg.FromCustomerAccounts,
-		arg.ToCustomerAccounts,
-		arg.Amount,
-	)
+	row := q.db.QueryRowContext(ctx, createTransaction, arg.FromCustomerAccounts, arg.ToCustomerAccounts, arg.Amount)
 	var i Transaction
 	err := row.Scan(
 		&i.ID,
@@ -45,7 +34,8 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 }
 
 const listTransaction = `-- name: ListTransaction :one
-SELECT id, from_customer_accounts, to_customer_accounts, amount, created_at FROM transaction
+SELECT id, from_customer_accounts, to_customer_accounts, amount, created_at
+FROM transaction
 WHERE id = $1 LIMIT 1
 `
 
@@ -63,7 +53,8 @@ func (q *Queries) ListTransaction(ctx context.Context, id int64) (Transaction, e
 }
 
 const listTransactionWithAmount = `-- name: ListTransactionWithAmount :one
-SELECT id, from_customer_accounts, to_customer_accounts, amount, created_at FROM transaction
+SELECT id, from_customer_accounts, to_customer_accounts, amount, created_at
+FROM transaction
 WHERE amount = $1
 `
 
@@ -81,11 +72,12 @@ func (q *Queries) ListTransactionWithAmount(ctx context.Context, amount int64) (
 }
 
 const listTransactionWithFromID = `-- name: ListTransactionWithFromID :one
-SELECT id, from_customer_accounts, to_customer_accounts, amount, created_at FROM transaction
+SELECT id, from_customer_accounts, to_customer_accounts, amount, created_at
+FROM transaction
 WHERE from_customer_accounts = $1
 `
 
-func (q *Queries) ListTransactionWithFromID(ctx context.Context, fromCustomerAccounts sql.NullInt64) (Transaction, error) {
+func (q *Queries) ListTransactionWithFromID(ctx context.Context, fromCustomerAccounts int64) (Transaction, error) {
 	row := q.db.QueryRowContext(ctx, listTransactionWithFromID, fromCustomerAccounts)
 	var i Transaction
 	err := row.Scan(
@@ -99,11 +91,12 @@ func (q *Queries) ListTransactionWithFromID(ctx context.Context, fromCustomerAcc
 }
 
 const listTransactionWithToID = `-- name: ListTransactionWithToID :one
-SELECT id, from_customer_accounts, to_customer_accounts, amount, created_at FROM transaction
+SELECT id, from_customer_accounts, to_customer_accounts, amount, created_at
+FROM transaction
 WHERE to_customer_accounts = $1
 `
 
-func (q *Queries) ListTransactionWithToID(ctx context.Context, toCustomerAccounts sql.NullInt64) (Transaction, error) {
+func (q *Queries) ListTransactionWithToID(ctx context.Context, toCustomerAccounts int64) (Transaction, error) {
 	row := q.db.QueryRowContext(ctx, listTransactionWithToID, toCustomerAccounts)
 	var i Transaction
 	err := row.Scan(
@@ -117,9 +110,9 @@ func (q *Queries) ListTransactionWithToID(ctx context.Context, toCustomerAccount
 }
 
 const listTransactions = `-- name: ListTransactions :many
-SELECT id, from_customer_accounts, to_customer_accounts, amount, created_at FROM transaction
-ORDER BY id
-LIMIT $1
+SELECT id, from_customer_accounts, to_customer_accounts, amount, created_at
+FROM transaction
+ORDER BY id LIMIT $1
 OFFSET $2
 `
 
