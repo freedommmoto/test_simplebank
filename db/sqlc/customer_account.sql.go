@@ -10,12 +10,8 @@ import (
 )
 
 const createCustomer = `-- name: CreateCustomer :one
-INSERT INTO customer_accounts (
-  customer_name, balance , currency
-) VALUES (
-  $1, $2 , $3
-)
-RETURNING id, customer_name, balance, currency, created_at
+INSERT INTO customer_accounts (customer_name, balance, currency)
+VALUES ($1, $2, $3) RETURNING id, customer_name, balance, currency, created_at
 `
 
 type CreateCustomerParams struct {
@@ -38,7 +34,8 @@ func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) 
 }
 
 const deleteCustomer = `-- name: DeleteCustomer :exec
-DELETE FROM customer_accounts
+DELETE
+FROM customer_accounts
 WHERE id = $1
 `
 
@@ -48,7 +45,8 @@ func (q *Queries) DeleteCustomer(ctx context.Context, id int64) error {
 }
 
 const getCustomer = `-- name: GetCustomer :one
-SELECT id, customer_name, balance, currency, created_at FROM customer_accounts
+SELECT id, customer_name, balance, currency, created_at
+FROM customer_accounts
 WHERE id = $1 LIMIT 1
 `
 
@@ -66,9 +64,9 @@ func (q *Queries) GetCustomer(ctx context.Context, id int64) (CustomerAccount, e
 }
 
 const listCustomer = `-- name: ListCustomer :many
-SELECT id, customer_name, balance, currency, created_at FROM customer_accounts
-ORDER BY id
-LIMIT $1
+SELECT id, customer_name, balance, currency, created_at
+FROM customer_accounts
+ORDER BY id LIMIT $1
 OFFSET $2
 `
 
@@ -109,8 +107,7 @@ func (q *Queries) ListCustomer(ctx context.Context, arg ListCustomerParams) ([]C
 const updateCustomer = `-- name: UpdateCustomer :one
 UPDATE customer_accounts
 SET balance = $2
-WHERE id = $1 
-RETURNING id, customer_name, balance, currency, created_at
+WHERE id = $1 RETURNING id, customer_name, balance, currency, created_at
 `
 
 type UpdateCustomerParams struct {
@@ -120,6 +117,30 @@ type UpdateCustomerParams struct {
 
 func (q *Queries) UpdateCustomer(ctx context.Context, arg UpdateCustomerParams) (CustomerAccount, error) {
 	row := q.db.QueryRowContext(ctx, updateCustomer, arg.ID, arg.Balance)
+	var i CustomerAccount
+	err := row.Scan(
+		&i.ID,
+		&i.CustomerName,
+		&i.Balance,
+		&i.Currency,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const updateCustomerCurrency = `-- name: UpdateCustomerCurrency :one
+UPDATE customer_accounts
+SET currency = $2
+WHERE id = $1 RETURNING id, customer_name, balance, currency, created_at
+`
+
+type UpdateCustomerCurrencyParams struct {
+	ID       int64  `json:"id"`
+	Currency string `json:"currency"`
+}
+
+func (q *Queries) UpdateCustomerCurrency(ctx context.Context, arg UpdateCustomerCurrencyParams) (CustomerAccount, error) {
+	row := q.db.QueryRowContext(ctx, updateCustomerCurrency, arg.ID, arg.Currency)
 	var i CustomerAccount
 	err := row.Scan(
 		&i.ID,

@@ -11,19 +11,19 @@ import (
 
 	"github.com/freedommmoto/test_simplebank/api"
 	db "github.com/freedommmoto/test_simplebank/db/sqlc"
-	"github.com/freedommmoto/test_simplebank/tool"
-)
-
-const (
-	dbDriver      = "postgres"
-	dbSource      = "postgresql://root:secret@postgres-docker-service:5432/simple_bank?sslmode=disable"
-	serverAddress = "0.0.0.0:8082"
+	tool "github.com/freedommmoto/test_simplebank/tool"
 )
 
 var mainQueries *db.Queries
 
 func connectDB() {
-	conn, err := sql.Open(dbDriver, dbSource)
+	config, err := tool.LoadConfig(".")
+	fmt.Printf("%v", config)
+	if err != nil {
+		log.Fatal("cannot load config file:", err)
+	}
+
+	conn, err := sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
 		log.Fatal("cannot connect to db:", err)
 	}
@@ -69,15 +69,23 @@ func headers(w http.ResponseWriter, req *http.Request) {
 // }
 
 func main() {
-	conn, err := sql.Open(dbDriver, dbSource)
+
+	config, err := tool.LoadConfig(".")
+	fmt.Printf("%v", config)
+	if err != nil {
+		log.Fatal("cannot load config file:", err)
+	}
+
+	conn, err := sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
 		log.Fatal("cannot connect to db:", err)
 	}
 	store := db.New(conn)
 	server := api.NewServer(store)
 
-	err = server.Start(serverAddress)
+	err = server.Start(config.ServerAddress)
 	if err != nil {
 		log.Fatal("can't start server with gin", err)
 	}
+
 }
