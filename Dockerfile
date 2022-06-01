@@ -11,6 +11,7 @@ RUN chmod +x migrate
 #last stage
 FROM alpine:3.13
 WORKDIR /app
+COPY --from=builder /app/app.env .
 COPY --from=builder /app/test_simplebank .
 COPY --from=builder /app/migrate ./migrate
 COPY start.sh .

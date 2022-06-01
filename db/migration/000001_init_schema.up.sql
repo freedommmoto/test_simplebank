@@ -16,8 +16,8 @@ CREATE TABLE "entries" (
 
 CREATE TABLE "transaction" (
                                "id" bigserial PRIMARY KEY,
-                               "from_customer_accounts" bigint,
-                               "to_customer_accounts" bigint,
+                               "from_customer_accounts" bigint NOT NULL,
+                               "to_customer_accounts" bigint NOT NULL,
                                "amount" bigint NOT NULL,
                                "created_at" timestamp NOT NULL DEFAULT 'now()'
 );
