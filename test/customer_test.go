@@ -1,8 +1,9 @@
-package db
+package test
 
 import (
 	"context"
 	"database/sql"
+	db "github.com/freedommmoto/test_simplebank/db/sqlc"
 	"testing"
 	"time"
 
@@ -10,8 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func randomMakeCustomer(t *testing.T) CustomerAccount {
-	arg := CreateCustomerParams{
+func RandomMakeCustomer(t *testing.T) db.CustomerAccount {
+	arg := db.CreateCustomerParams{
 		CustomerName: tool.RandomOwner(), // should used random data
 		Balance:      tool.RandomMoney(),
 		Currency:     tool.RandomCurrency(),
@@ -31,13 +32,13 @@ func randomMakeCustomer(t *testing.T) CustomerAccount {
 	return customer
 }
 
-// run test|dubug testing
+// run test|debug testing
 func TestCreateCustomer(t *testing.T) {
-	randomMakeCustomer(t)
+	RandomMakeCustomer(t)
 }
 
 func testGetCustomer(t *testing.T) {
-	customer1 := randomMakeCustomer(t)
+	customer1 := RandomMakeCustomer(t)
 	customer2, err := testQueries.GetCustomer(context.Background(), customer1.ID)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, customer2)
@@ -49,9 +50,9 @@ func testGetCustomer(t *testing.T) {
 }
 
 func TestUpdateCustomer(t *testing.T) {
-	customer1 := randomMakeCustomer(t)
+	customer1 := RandomMakeCustomer(t)
 
-	arg := UpdateCustomerParams{
+	arg := db.UpdateCustomerParams{
 		ID:      customer1.ID,
 		Balance: tool.RandomMoney(),
 	}
@@ -66,7 +67,7 @@ func TestUpdateCustomer(t *testing.T) {
 }
 
 func TestDeleteCustomer(t *testing.T) {
-	customerTestDelete := randomMakeCustomer(t)
+	customerTestDelete := RandomMakeCustomer(t)
 	err := testQueries.DeleteCustomer(context.Background(), customerTestDelete.ID)
 	assert.NoError(t, err)
 
@@ -78,10 +79,10 @@ func TestDeleteCustomer(t *testing.T) {
 
 func TestListCustomer(t *testing.T) {
 	for i := 0; i < 10; i++ {
-		randomMakeCustomer(t)
+		RandomMakeCustomer(t)
 	}
 
-	arg := ListCustomerParams{
+	arg := db.ListCustomerParams{
 		Limit:  4,
 		Offset: 6,
 	}

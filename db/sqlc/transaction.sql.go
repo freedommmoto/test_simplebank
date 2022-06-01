@@ -52,61 +52,109 @@ func (q *Queries) ListTransaction(ctx context.Context, id int64) (Transaction, e
 	return i, err
 }
 
-const listTransactionWithAmount = `-- name: ListTransactionWithAmount :one
+const listTransactionWithAmount = `-- name: ListTransactionWithAmount :many
 SELECT id, from_customer_accounts, to_customer_accounts, amount, created_at
 FROM transaction
 WHERE amount = $1
 `
 
-func (q *Queries) ListTransactionWithAmount(ctx context.Context, amount int64) (Transaction, error) {
-	row := q.db.QueryRowContext(ctx, listTransactionWithAmount, amount)
-	var i Transaction
-	err := row.Scan(
-		&i.ID,
-		&i.FromCustomerAccounts,
-		&i.ToCustomerAccounts,
-		&i.Amount,
-		&i.CreatedAt,
-	)
-	return i, err
+func (q *Queries) ListTransactionWithAmount(ctx context.Context, amount int64) ([]Transaction, error) {
+	rows, err := q.db.QueryContext(ctx, listTransactionWithAmount, amount)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Transaction
+	for rows.Next() {
+		var i Transaction
+		if err := rows.Scan(
+			&i.ID,
+			&i.FromCustomerAccounts,
+			&i.ToCustomerAccounts,
+			&i.Amount,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
-const listTransactionWithFromID = `-- name: ListTransactionWithFromID :one
+const listTransactionWithFromID = `-- name: ListTransactionWithFromID :many
 SELECT id, from_customer_accounts, to_customer_accounts, amount, created_at
 FROM transaction
 WHERE from_customer_accounts = $1
 `
 
-func (q *Queries) ListTransactionWithFromID(ctx context.Context, fromCustomerAccounts int64) (Transaction, error) {
-	row := q.db.QueryRowContext(ctx, listTransactionWithFromID, fromCustomerAccounts)
-	var i Transaction
-	err := row.Scan(
-		&i.ID,
-		&i.FromCustomerAccounts,
-		&i.ToCustomerAccounts,
-		&i.Amount,
-		&i.CreatedAt,
-	)
-	return i, err
+func (q *Queries) ListTransactionWithFromID(ctx context.Context, fromCustomerAccounts int64) ([]Transaction, error) {
+	rows, err := q.db.QueryContext(ctx, listTransactionWithFromID, fromCustomerAccounts)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Transaction
+	for rows.Next() {
+		var i Transaction
+		if err := rows.Scan(
+			&i.ID,
+			&i.FromCustomerAccounts,
+			&i.ToCustomerAccounts,
+			&i.Amount,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
-const listTransactionWithToID = `-- name: ListTransactionWithToID :one
+const listTransactionWithToID = `-- name: ListTransactionWithToID :many
 SELECT id, from_customer_accounts, to_customer_accounts, amount, created_at
 FROM transaction
 WHERE to_customer_accounts = $1
 `
 
-func (q *Queries) ListTransactionWithToID(ctx context.Context, toCustomerAccounts int64) (Transaction, error) {
-	row := q.db.QueryRowContext(ctx, listTransactionWithToID, toCustomerAccounts)
-	var i Transaction
-	err := row.Scan(
-		&i.ID,
-		&i.FromCustomerAccounts,
-		&i.ToCustomerAccounts,
-		&i.Amount,
-		&i.CreatedAt,
-	)
-	return i, err
+func (q *Queries) ListTransactionWithToID(ctx context.Context, toCustomerAccounts int64) ([]Transaction, error) {
+	rows, err := q.db.QueryContext(ctx, listTransactionWithToID, toCustomerAccounts)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Transaction
+	for rows.Next() {
+		var i Transaction
+		if err := rows.Scan(
+			&i.ID,
+			&i.FromCustomerAccounts,
+			&i.ToCustomerAccounts,
+			&i.Amount,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listTransactions = `-- name: ListTransactions :many

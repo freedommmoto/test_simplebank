@@ -13,17 +13,17 @@ FROM transaction
 ORDER BY id LIMIT $1
 OFFSET $2;
 
--- name: ListTransactionWithFromID :one
+-- name: ListTransactionWithFromID :many
 SELECT *
 FROM transaction
 WHERE from_customer_accounts = $1;
 
--- name: ListTransactionWithToID :one
+-- name: ListTransactionWithToID :many
 SELECT *
 FROM transaction
 WHERE to_customer_accounts = $1;
 
--- name: ListTransactionWithAmount :one
+-- name: ListTransactionWithAmount :many
 SELECT *
 FROM transaction
 WHERE amount = $1;
