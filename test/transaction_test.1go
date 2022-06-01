@@ -1,19 +1,20 @@
-package db
+package test
 
 import (
 	"context"
-	"github.com/freedommmoto/test_simplebank/tool"
+	"github.com/freedommmoto/test_simplebank/db/sqlc"
+	tool "github.com/freedommmoto/test_simplebank/tool"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
 
-func randomMakeTransaction(t *testing.T) Transaction {
+func randomMakeTransaction(t *testing.T) db.Transaction {
 
-	FromCustomer := randomMakeCustomer(t)
-	ToCustomer := randomMakeCustomer(t)
+	FromCustomer := RandomMakeCustomer(t)
+	ToCustomer := RandomMakeCustomer(t)
 
-	arg := CreateTransactionParams{
+	arg := db.CreateTransactionParams{
 		FromCustomerAccounts: FromCustomer.ID,
 		ToCustomerAccounts:   ToCustomer.ID,
 		Amount:               tool.RandomMoney(),
@@ -48,7 +49,7 @@ func TestGetTransactions(t *testing.T) {
 	randomMakeTransaction(t)
 	randomMakeTransaction(t)
 
-	arg := ListTransactionsParams{
+	arg := db.ListTransactionsParams{
 		Limit:  2,
 		Offset: 1,
 	}

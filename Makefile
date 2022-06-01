@@ -10,10 +10,10 @@ createdb:
 dropdb:
 	docker exec -it postgres12 dropdb --username=root simple_bank
 
-migrateup:
+dbup:
 	migrate -path db/migration -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose up
 
-migratdown:
+dbdown:
 	migrate -path db/migration -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose down
 
 sqlc:
@@ -21,6 +21,11 @@ sqlc:
 
 test:
 	go test -v -cover ./...
+
+testall:
+	go clean -testcache
+	go test -v -coverpkg=./... -coverprofile=profile.cov ./...
+	go tool cover -func profile.cov
 
 server:
 	go run main.go

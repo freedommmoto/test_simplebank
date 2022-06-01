@@ -1,8 +1,8 @@
-package db
+package test
 
 import (
 	"database/sql"
-	"fmt"
+	db "github.com/freedommmoto/test_simplebank/db/sqlc"
 	"log"
 	"os"
 	"testing"
@@ -11,19 +11,19 @@ import (
 	_ "github.com/lib/pq"
 )
 
-var testQueries *Queries
+var testQueries *db.Queries
 
 func TestMain(m *testing.M) {
 
-	config, err := tool.LoadConfig("../../")
-	fmt.Printf("%v", config)
+	config, err := tool.LoadConfig("../")
+	//fmt.Printf("%v", config)
 
 	conn, err := sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
 		log.Fatal("cannot connect to db:", err)
 	}
 
-	testQueries = New(conn)
+	testQueries = db.New(conn)
 
 	os.Exit(m.Run())
 }

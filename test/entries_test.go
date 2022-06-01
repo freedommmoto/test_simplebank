@@ -1,7 +1,8 @@
-package db
+package test
 
 import (
 	"context"
+	db "github.com/freedommmoto/test_simplebank/db/sqlc"
 	"testing"
 	"time"
 
@@ -9,10 +10,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func randomMakeEntries(t *testing.T) Entry {
+func randomMakeEntries(t *testing.T) db.Entry {
 
-	customer := randomMakeCustomer(t)
-	arg := CreateEntriesParams{
+	customer := RandomMakeCustomer(t)
+	arg := db.CreateEntriesParams{
 		CustomerID: customer.ID,
 		Amount:     tool.RandomMoney(),
 	}
@@ -30,7 +31,7 @@ func randomMakeEntries(t *testing.T) Entry {
 	return Entry
 }
 
-// run test|dubug testing
+// run test|debug testing
 func TestCreateEntries(t *testing.T) {
 	randomMakeEntries(t)
 }
