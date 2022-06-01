@@ -22,8 +22,9 @@ sqlc:
 test:
 	go test -v -cover ./...
 
-testall:
+fulltest:
 	go clean -testcache
+	go test -v -coverpkg=./... -coverprofile=profile.cov ./...
 	go test -v -coverpkg=./... -coverprofile=profile.cov ./...
 	go tool cover -func profile.cov
 

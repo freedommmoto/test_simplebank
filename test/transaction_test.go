@@ -75,33 +75,49 @@ func TestGetTransaction(t *testing.T) {
 	assert.WithinDuration(t, NewTransaction.CreatedAt, SelectTransaction.CreatedAt, time.Second)
 }
 
-//func TestGetTransactionWithFromCustomerID(t *testing.T) {
-//	NewTransaction := randomMakeTransaction(t)
-//	SelectTransaction, err := testQueries.ListTransaction(context.Background(), NewTransaction.ID)
-//
-//	assert.NoError(t, err)
-//	assert.NotEmpty(t, SelectTransaction)
-//
-//	assert.Equal(t, NewTransaction.FromCustomerAccounts, SelectTransaction.FromCustomerAccounts)
-//	assert.Equal(t, NewTransaction.ToCustomerAccounts, SelectTransaction.ToCustomerAccounts)
-//	assert.Equal(t, NewTransaction.Amount, SelectTransaction.Amount)
-//	assert.WithinDuration(t, NewTransaction.CreatedAt, SelectTransaction.CreatedAt, time.Second)
-//}
+func makeManyTransaction(t *testing.T) [2]db.CustomerAccount {
+	FromCustomer := RandomMakeCustomer(t)
+	ToCustomer := RandomMakeCustomer(t)
+	AmountForSelect := int64(1)
+	for i := 0; i < 3; i++ {
+		arg := db.CreateTransactionParams{
+			FromCustomerAccounts: FromCustomer.ID,
+			ToCustomerAccounts:   ToCustomer.ID,
+			Amount:               AmountForSelect,
+		}
+		_, _ = testQueries.CreateTransaction(context.Background(), arg)
+	}
 
-//assert.NoError(t, err)
-//assert.NotEmpty(t, SelectTransaction)
-//
-//assert.Equal(t, NewTransaction.FromCustomerAccounts, SelectTransaction.FromCustomerAccounts)
-//assert.Equal(t, NewTransaction.ToCustomerAccounts, SelectTransaction.ToCustomerAccounts)
-//assert.Equal(t, NewTransaction.Amount, SelectTransaction.Amount)
-//assert.WithinDuration(t, EntriesList.CreatedAt, Entries.CreatedAt, time.Second)
+	//incase need Slice
+	//CustomerSlice := make([]db.CustomerAccount, 0, 2)
+	//CustomerSlice = append(CustomerSlice, FromCustomer)
+	//CustomerSlice = append(CustomerSlice, ToCustomer)
+	//return CustomerSlice
 
-// func TestGetEntrieByCustomerID(t *testing.T) {
-// 	Entries := randomMakeEntries(t)
-// 	EntriesList, err := testQueries.ListEntriesByCustomerID(context.Background(), Entries.CustomerID)
+	var CustomerArray [2]db.CustomerAccount
+	CustomerArray[0] = FromCustomer
+	CustomerArray[1] = ToCustomer
+	return CustomerArray
+}
 
-// 	assert.NoError(t, err)
-// 	for _, Entry := range EntriesList {
-// 		assert.NotEmpty(t, Entry.ID)
-// 	}
-// }
+func TestListTransactionWithFromID(t *testing.T) {
+	CustomerArray := makeManyTransaction(t)
+	SelectTransactions, _ := testQueries.ListTransactionWithFromID(context.Background(), CustomerArray[0].ID)
+	assert.NotEmpty(t, SelectTransactions)
+
+	for _, Transaction := range SelectTransactions {
+		assert.Equal(t, Transaction.FromCustomerAccounts, CustomerArray[0].ID)
+		assert.NotEmpty(t, Transaction.ID)
+	}
+}
+
+func TestListTransactionWithToID(t *testing.T) {
+	CustomerArray := makeManyTransaction(t)
+	SelectTransactions, _ := testQueries.ListTransactionWithToID(context.Background(), CustomerArray[1].ID)
+	assert.NotEmpty(t, SelectTransactions)
+
+	for _, Transaction := range SelectTransactions {
+		assert.Equal(t, Transaction.ToCustomerAccounts, CustomerArray[1].ID)
+		assert.NotEmpty(t, Transaction.ID)
+	}
+}
