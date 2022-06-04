@@ -50,7 +50,7 @@ func TestMakeTransferTx(t *testing.T) {
 		}()
 	}
 
-	//existed := make(map[int]bool)
+	existed := make(map[int]bool)
 	//check results
 	for m := 0; m < testRound; m++ {
 		err := <-errs
@@ -104,10 +104,10 @@ func TestMakeTransferTx(t *testing.T) {
 		fmt.Println(">> tx  :", fromCustomer.Balance, toCustomer.Balance)
 
 		//need to check more here
-		//k := int(diff1 / amount)
-		//require.True(t, k >= 1 && k <= testRound)
-		//require.NotContains(t, existed, k)
-		//existed[k] = true
+		k := int(diff1 / amount)
+		require.True(t, k >= 1 && k <= testRound)
+		require.NotContains(t, existed, k)
+		existed[k] = true
 	}
 
 	//after for loop check the final update balances

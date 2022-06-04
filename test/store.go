@@ -94,24 +94,19 @@ func (store *SQLStore) MakeTransferTx(ctx context.Context, arg TransferTxParams)
 		}
 
 		//select customer after update Balance
-		fmt.Println(txName, "make GetCustomerForUpdate")
-		returnData.FromCustomer, err = queries.GetCustomerForUpdate(ctx, arg.FromAccountID)
-		returnData.ToCustomer, err = queries.GetCustomerForUpdate(ctx, arg.ToAccountID)
-
-		//todo update account amount
 		fmt.Println(txName, "make UpdateCustomer 1")
-		_, err = queries.UpdateCustomer(context.Background(), db.UpdateCustomerParams{
-			ID:      arg.FromAccountID,
-			Balance: returnData.FromCustomer.Balance - arg.Amount,
+		_, err = queries.UpdateCustomerBalance(context.Background(), db.UpdateCustomerBalanceParams{
+			ID:     arg.FromAccountID,
+			Amount: -arg.Amount,
 		})
 		if err != nil {
 			return err
 		}
 
 		fmt.Println(txName, "make UpdateCustomer 2")
-		_, err = queries.UpdateCustomer(context.Background(), db.UpdateCustomerParams{
-			ID:      arg.ToAccountID,
-			Balance: returnData.ToCustomer.Balance + arg.Amount,
+		_, err = queries.UpdateCustomerBalance(context.Background(), db.UpdateCustomerBalanceParams{
+			ID:     arg.ToAccountID,
+			Amount: arg.Amount,
 		})
 		if err != nil {
 			return err

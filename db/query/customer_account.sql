@@ -28,6 +28,11 @@ UPDATE customer_accounts
 SET balance = $2
 WHERE id = $1 RETURNING *;
 
+-- name: UpdateCustomerBalance :one
+UPDATE customer_accounts
+SET balance = balance + sqlc.arg(amount)
+WHERE id = sqlc.arg(id) RETURNING *;
+
 -- name: UpdateCustomerCurrency :one
 UPDATE customer_accounts
 SET currency = $2
