@@ -49,11 +49,11 @@ type TransferTxParams struct {
 }
 
 type TransferTxResult struct {
-	Transaction   db.Transaction     `json:"transaction"`
-	FromAccountID db.CustomerAccount `json:"from_account_id"`
-	ToAccountID   db.CustomerAccount `json:"to_account_id"`
-	FromEntry     db.Entry           `json:"from_entry"`
-	ToEntry       db.Entry           `json:"to_entry"`
+	Transaction  db.Transaction     `json:"transaction"`
+	FromCustomer db.CustomerAccount `json:"from_account_id"`
+	ToCustomer   db.CustomerAccount `json:"to_account_id"`
+	FromEntry    db.Entry           `json:"from_entry"`
+	ToEntry      db.Entry           `json:"to_entry"`
 }
 
 func (store *SQLStore) MakeTransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
@@ -72,7 +72,7 @@ func (store *SQLStore) MakeTransferTx(ctx context.Context, arg TransferTxParams)
 
 		returnData.FromEntry, err = queries.CreateEntries(ctx, db.CreateEntriesParams{
 			CustomerID: arg.FromAccountID,
-			Amount:     arg.Amount,
+			Amount:     -arg.Amount,
 		})
 		if err != nil {
 			return err
@@ -86,7 +86,30 @@ func (store *SQLStore) MakeTransferTx(ctx context.Context, arg TransferTxParams)
 			return err
 		}
 
+		//select customer after update Balance
+		returnData.FromCustomer, err = queries.GetCustomer(ctx, arg.FromAccountID)
+		returnData.ToCustomer, err = queries.GetCustomer(ctx, arg.ToAccountID)
+
 		//todo update account amount
+		_, err = queries.UpdateCustomer(context.Background(), db.UpdateCustomerParams{
+			ID:      arg.FromAccountID,
+			Balance: returnData.FromCustomer.Balance - arg.Amount,
+		})
+		if err != nil {
+			return err
+		}
+
+		_, err = queries.UpdateCustomer(context.Background(), db.UpdateCustomerParams{
+			ID:      arg.ToAccountID,
+			Balance: returnData.ToCustomer.Balance + arg.Amount,
+		})
+		if err != nil {
+			return err
+		}
+
+		//select customer after update Balance
+		returnData.FromCustomer, err = queries.GetCustomer(ctx, arg.FromAccountID)
+		returnData.ToCustomer, err = queries.GetCustomer(ctx, arg.ToAccountID)
 
 		return nil
 	})
