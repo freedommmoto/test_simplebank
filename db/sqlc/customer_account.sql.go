@@ -63,6 +63,25 @@ func (q *Queries) GetCustomer(ctx context.Context, id int64) (CustomerAccount, e
 	return i, err
 }
 
+const getCustomerForUpdate = `-- name: GetCustomerForUpdate :one
+SELECT id, customer_name, balance, currency, created_at
+FROM customer_accounts
+WHERE id = $1 LIMIT 1 FOR NO KEY UPDATE
+`
+
+func (q *Queries) GetCustomerForUpdate(ctx context.Context, id int64) (CustomerAccount, error) {
+	row := q.db.QueryRowContext(ctx, getCustomerForUpdate, id)
+	var i CustomerAccount
+	err := row.Scan(
+		&i.ID,
+		&i.CustomerName,
+		&i.Balance,
+		&i.Currency,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const listCustomer = `-- name: ListCustomer :many
 SELECT id, customer_name, balance, currency, created_at
 FROM customer_accounts
@@ -117,6 +136,30 @@ type UpdateCustomerParams struct {
 
 func (q *Queries) UpdateCustomer(ctx context.Context, arg UpdateCustomerParams) (CustomerAccount, error) {
 	row := q.db.QueryRowContext(ctx, updateCustomer, arg.ID, arg.Balance)
+	var i CustomerAccount
+	err := row.Scan(
+		&i.ID,
+		&i.CustomerName,
+		&i.Balance,
+		&i.Currency,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const updateCustomerBalance = `-- name: UpdateCustomerBalance :one
+UPDATE customer_accounts
+SET balance = balance + $1
+WHERE id = $2 RETURNING id, customer_name, balance, currency, created_at
+`
+
+type UpdateCustomerBalanceParams struct {
+	Amount int64 `json:"amount"`
+	ID     int64 `json:"id"`
+}
+
+func (q *Queries) UpdateCustomerBalance(ctx context.Context, arg UpdateCustomerBalanceParams) (CustomerAccount, error) {
+	row := q.db.QueryRowContext(ctx, updateCustomerBalance, arg.Amount, arg.ID)
 	var i CustomerAccount
 	err := row.Scan(
 		&i.ID,
