@@ -1,36 +1,37 @@
-package db
+package test
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
+	db "github.com/freedommmoto/test_simplebank/db/sqlc"
 )
 
 type Store interface {
-	Queries
+	db.Queries
 	MakeTransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error)
 }
 
 // SQLStore provides all functions to execute SQL queries and transactions
 type SQLStore struct {
 	db *sql.DB
-	*Queries
+	*db.Queries
 }
 
-func NewStore(db *sql.DB) SQLStore {
+func NewStore(sqldb *sql.DB) SQLStore {
 	return SQLStore{
-		db:      db,
-		Queries: New(db),
+		db:      sqldb,
+		Queries: db.New(sqldb),
 	}
 }
 
 // make first function name as a lower case is like a private function
-func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) error {
+func (store *SQLStore) execTx(ctx context.Context, fn func(*db.Queries) error) error {
 	tx, err := store.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
-	q := New(tx)
+	q := db.New(tx)
 	err = fn(q)
 	if err != nil {
 		if rbErr := tx.Rollback(); rbErr != nil {
@@ -48,19 +49,19 @@ type TransferTxParams struct {
 }
 
 type TransferTxResult struct {
-	Transaction   Transaction     `json:"transaction"`
-	FromAccountID CustomerAccount `json:"from_account_id"`
-	ToAccountID   CustomerAccount `json:"to_account_id"`
-	FromEntry     Entry           `json:"from_entry"`
-	ToEntry       Entry           `json:"to_entry"`
+	Transaction   db.Transaction     `json:"transaction"`
+	FromAccountID db.CustomerAccount `json:"from_account_id"`
+	ToAccountID   db.CustomerAccount `json:"to_account_id"`
+	FromEntry     db.Entry           `json:"from_entry"`
+	ToEntry       db.Entry           `json:"to_entry"`
 }
 
 func (store *SQLStore) MakeTransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
 	var returnData TransferTxResult
-	err := store.execTx(ctx, func(queries *Queries) (err error) {
+	err := store.execTx(ctx, func(queries *db.Queries) (err error) {
 
 		//var err error
-		returnData.Transaction, err = queries.CreateTransaction(ctx, CreateTransactionParams{
+		returnData.Transaction, err = queries.CreateTransaction(ctx, db.CreateTransactionParams{
 			FromCustomerAccounts: arg.FromAccountID,
 			ToCustomerAccounts:   arg.ToAccountID,
 			Amount:               arg.Amount,
@@ -69,7 +70,7 @@ func (store *SQLStore) MakeTransferTx(ctx context.Context, arg TransferTxParams)
 			return err
 		}
 
-		returnData.FromEntry, err = queries.CreateEntries(ctx, CreateEntriesParams{
+		returnData.FromEntry, err = queries.CreateEntries(ctx, db.CreateEntriesParams{
 			CustomerID: arg.FromAccountID,
 			Amount:     arg.Amount,
 		})
@@ -77,7 +78,7 @@ func (store *SQLStore) MakeTransferTx(ctx context.Context, arg TransferTxParams)
 			return err
 		}
 
-		returnData.ToEntry, err = queries.CreateEntries(ctx, CreateEntriesParams{
+		returnData.ToEntry, err = queries.CreateEntries(ctx, db.CreateEntriesParams{
 			CustomerID: arg.ToAccountID,
 			Amount:     arg.Amount,
 		})
@@ -86,7 +87,7 @@ func (store *SQLStore) MakeTransferTx(ctx context.Context, arg TransferTxParams)
 		}
 
 		//todo update account amount
-		
+
 		return nil
 	})
 	return returnData, err
