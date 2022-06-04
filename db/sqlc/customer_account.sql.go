@@ -63,6 +63,25 @@ func (q *Queries) GetCustomer(ctx context.Context, id int64) (CustomerAccount, e
 	return i, err
 }
 
+const getCustomerForUpdate = `-- name: GetCustomerForUpdate :one
+SELECT id, customer_name, balance, currency, created_at
+FROM customer_accounts
+WHERE id = $1 LIMIT 1 FOR UPDATE
+`
+
+func (q *Queries) GetCustomerForUpdate(ctx context.Context, id int64) (CustomerAccount, error) {
+	row := q.db.QueryRowContext(ctx, getCustomerForUpdate, id)
+	var i CustomerAccount
+	err := row.Scan(
+		&i.ID,
+		&i.CustomerName,
+		&i.Balance,
+		&i.Currency,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const listCustomer = `-- name: ListCustomer :many
 SELECT id, customer_name, balance, currency, created_at
 FROM customer_accounts

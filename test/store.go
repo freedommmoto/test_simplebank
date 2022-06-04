@@ -56,10 +56,15 @@ type TransferTxResult struct {
 	ToEntry      db.Entry           `json:"to_entry"`
 }
 
+var txKey = struct{}{}
+
 func (store *SQLStore) MakeTransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
 	var returnData TransferTxResult
 	err := store.execTx(ctx, func(queries *db.Queries) (err error) {
 
+		txName := ctx.Value(txKey)
+
+		fmt.Println(txName, "make transfer")
 		//var err error
 		returnData.Transaction, err = queries.CreateTransaction(ctx, db.CreateTransactionParams{
 			FromCustomerAccounts: arg.FromAccountID,
@@ -70,6 +75,7 @@ func (store *SQLStore) MakeTransferTx(ctx context.Context, arg TransferTxParams)
 			return err
 		}
 
+		fmt.Println(txName, "make CreateEntries1")
 		returnData.FromEntry, err = queries.CreateEntries(ctx, db.CreateEntriesParams{
 			CustomerID: arg.FromAccountID,
 			Amount:     -arg.Amount,
@@ -78,6 +84,7 @@ func (store *SQLStore) MakeTransferTx(ctx context.Context, arg TransferTxParams)
 			return err
 		}
 
+		fmt.Println(txName, "make CreateEntries2")
 		returnData.ToEntry, err = queries.CreateEntries(ctx, db.CreateEntriesParams{
 			CustomerID: arg.ToAccountID,
 			Amount:     arg.Amount,
@@ -87,10 +94,12 @@ func (store *SQLStore) MakeTransferTx(ctx context.Context, arg TransferTxParams)
 		}
 
 		//select customer after update Balance
-		returnData.FromCustomer, err = queries.GetCustomer(ctx, arg.FromAccountID)
-		returnData.ToCustomer, err = queries.GetCustomer(ctx, arg.ToAccountID)
+		fmt.Println(txName, "make GetCustomerForUpdate")
+		returnData.FromCustomer, err = queries.GetCustomerForUpdate(ctx, arg.FromAccountID)
+		returnData.ToCustomer, err = queries.GetCustomerForUpdate(ctx, arg.ToAccountID)
 
 		//todo update account amount
+		fmt.Println(txName, "make UpdateCustomer 1")
 		_, err = queries.UpdateCustomer(context.Background(), db.UpdateCustomerParams{
 			ID:      arg.FromAccountID,
 			Balance: returnData.FromCustomer.Balance - arg.Amount,
@@ -99,6 +108,7 @@ func (store *SQLStore) MakeTransferTx(ctx context.Context, arg TransferTxParams)
 			return err
 		}
 
+		fmt.Println(txName, "make UpdateCustomer 2")
 		_, err = queries.UpdateCustomer(context.Background(), db.UpdateCustomerParams{
 			ID:      arg.ToAccountID,
 			Balance: returnData.ToCustomer.Balance + arg.Amount,

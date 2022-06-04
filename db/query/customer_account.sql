@@ -7,6 +7,11 @@ SELECT *
 FROM customer_accounts
 WHERE id = $1 LIMIT 1;
 
+-- name: GetCustomerForUpdate :one
+SELECT *
+FROM customer_accounts
+WHERE id = $1 LIMIT 1 FOR UPDATE;
+
 -- name: ListCustomer :many
 SELECT *
 FROM customer_accounts

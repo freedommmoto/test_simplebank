@@ -3,7 +3,6 @@ package test
 import (
 	"context"
 	"fmt"
-	db "github.com/freedommmoto/test_simplebank/db/sqlc"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -14,31 +13,33 @@ func TestMakeTransferTx(t *testing.T) {
 	customer1 := RandomMakeCustomer(t)
 	customer2 := RandomMakeCustomer(t)
 
-	_, err := store.UpdateCustomer(context.Background(), db.UpdateCustomerParams{
-		ID:      customer1.ID,
-		Balance: 100,
-	})
-	require.NoError(t, err)
-	_, err = store.UpdateCustomer(context.Background(), db.UpdateCustomerParams{
-		ID:      customer2.ID,
-		Balance: 0,
-	})
-	require.NoError(t, err)
-
-	customer1, err = store.GetCustomer(context.Background(), customer1.ID)
-	customer2, err = store.GetCustomer(context.Background(), customer2.ID)
+	//_, err := store.UpdateCustomer(context.Background(), db.UpdateCustomerParams{
+	//	ID:      customer1.ID,
+	//	Balance: 100,
+	//})
+	//require.NoError(t, err)
+	//_, err = store.UpdateCustomer(context.Background(), db.UpdateCustomerParams{
+	//	ID:      customer2.ID,
+	//	Balance: 0,
+	//})
+	//require.NoError(t, err)
+	//
+	//customer1, err = store.GetCustomer(context.Background(), customer1.ID)
+	//customer2, err = store.GetCustomer(context.Background(), customer2.ID)
 
 	fmt.Println(">> before:", customer1.Balance, customer2.Balance)
 
-	testRound := 5
+	testRound := 2
 	amount := int64(10)
 
 	errs := make(chan error)
 	results := make(chan TransferTxResult)
 
 	for i := 0; i < testRound; i++ {
+		txName := fmt.Sprintf("tx %d", i+1)
 		go func() {
-			result, err := store.MakeTransferTx(context.Background(), TransferTxParams{
+			ctx := context.WithValue(context.Background(), txKey, txName)
+			result, err := store.MakeTransferTx(ctx, TransferTxParams{
 				FromAccountID: customer1.ID,
 				ToAccountID:   customer2.ID,
 				Amount:        amount,
@@ -118,6 +119,6 @@ func TestMakeTransferTx(t *testing.T) {
 	fmt.Println(">> after:", updateCustomer1.Balance, updateCustomer2.Balance)
 
 	require.Equal(t, customer1.Balance-(int64(testRound)*amount), updateCustomer1.Balance)
-	require.Equal(t, customer1.Balance+(int64(testRound)*amount), updateCustomer2.Balance)
+	require.Equal(t, customer2.Balance+(int64(testRound)*amount), updateCustomer2.Balance)
 
 }
