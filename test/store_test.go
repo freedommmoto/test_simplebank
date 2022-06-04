@@ -3,6 +3,7 @@ package test
 import (
 	"context"
 	"fmt"
+	db "github.com/freedommmoto/test_simplebank/db/sqlc"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -13,19 +14,19 @@ func TestMakeTransferTx(t *testing.T) {
 	customer1 := RandomMakeCustomer(t)
 	customer2 := RandomMakeCustomer(t)
 
-	//_, err := store.UpdateCustomer(context.Background(), db.UpdateCustomerParams{
-	//	ID:      customer1.ID,
-	//	Balance: 100,
-	//})
-	//require.NoError(t, err)
-	//_, err = store.UpdateCustomer(context.Background(), db.UpdateCustomerParams{
-	//	ID:      customer2.ID,
-	//	Balance: 0,
-	//})
-	//require.NoError(t, err)
-	//
-	//customer1, err = store.GetCustomer(context.Background(), customer1.ID)
-	//customer2, err = store.GetCustomer(context.Background(), customer2.ID)
+	_, err := store.UpdateCustomer(context.Background(), db.UpdateCustomerParams{
+		ID:      customer1.ID,
+		Balance: 100,
+	})
+	require.NoError(t, err)
+	_, err = store.UpdateCustomer(context.Background(), db.UpdateCustomerParams{
+		ID:      customer2.ID,
+		Balance: 0,
+	})
+	require.NoError(t, err)
+
+	customer1, err = store.GetCustomer(context.Background(), customer1.ID)
+	customer2, err = store.GetCustomer(context.Background(), customer2.ID)
 
 	fmt.Println(">> before:", customer1.Balance, customer2.Balance)
 

@@ -32,8 +32,8 @@ CREATE INDEX ON "transaction" ("to_customer_accounts");
 
 CREATE INDEX ON "transaction" ("from_customer_accounts", "to_customer_accounts");
 
-ALTER TABLE "entries" ADD FOREIGN KEY ("customer_id") REFERENCES "customer_accounts" ("id");
-
-ALTER TABLE "transaction" ADD FOREIGN KEY ("from_customer_accounts") REFERENCES "customer_accounts" ("id");
-
-ALTER TABLE "transaction" ADD FOREIGN KEY ("to_customer_accounts") REFERENCES "customer_accounts" ("id");
+-- ALTER TABLE "entries" ADD FOREIGN KEY ("customer_id") REFERENCES "customer_accounts" ("id");
+--
+-- ALTER TABLE "transaction" ADD FOREIGN KEY ("from_customer_accounts") REFERENCES "customer_accounts" ("id");
+--
+-- ALTER TABLE "transaction" ADD FOREIGN KEY ("to_customer_accounts") REFERENCES "customer_accounts" ("id");
