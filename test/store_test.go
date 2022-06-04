@@ -30,7 +30,7 @@ func TestMakeTransferTx(t *testing.T) {
 
 	fmt.Println(">> before:", customer1.Balance, customer2.Balance)
 
-	testRound := 2
+	testRound := 5
 	amount := int64(10)
 
 	errs := make(chan error)

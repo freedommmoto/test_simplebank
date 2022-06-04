@@ -66,7 +66,7 @@ func (q *Queries) GetCustomer(ctx context.Context, id int64) (CustomerAccount, e
 const getCustomerForUpdate = `-- name: GetCustomerForUpdate :one
 SELECT id, customer_name, balance, currency, created_at
 FROM customer_accounts
-WHERE id = $1 LIMIT 1 FOR UPDATE
+WHERE id = $1 LIMIT 1 FOR NO KEY UPDATE
 `
 
 func (q *Queries) GetCustomerForUpdate(ctx context.Context, id int64) (CustomerAccount, error) {
