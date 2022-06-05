@@ -61,7 +61,6 @@ var txKey = struct{}{}
 func (store *SQLStore) MakeTransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
 	var returnData TransferTxResult
 	err := store.execTx(ctx, func(queries *db.Queries) (err error) {
-
 		txName := ctx.Value(txKey)
 
 		fmt.Println(txName, "make transfer")
@@ -93,21 +92,16 @@ func (store *SQLStore) MakeTransferTx(ctx context.Context, arg TransferTxParams)
 			return err
 		}
 
-		//select customer after update Balance
-		fmt.Println(txName, "make UpdateCustomer 1")
-		_, err = queries.UpdateCustomerBalance(context.Background(), db.UpdateCustomerBalanceParams{
-			ID:     arg.FromAccountID,
-			Amount: -arg.Amount,
-		})
-		if err != nil {
-			return err
+		//sort order update customer to make no deadlock
+		if arg.FromAccountID < arg.ToAccountID {
+			returnData.FromCustomer, returnData.ToCustomer, err = updateBalance(ctx, queries, txName, arg.FromAccountID, -arg.Amount, arg.ToAccountID, arg.Amount)
+		} else {
+			returnData.FromCustomer, returnData.ToCustomer, err = updateBalance(ctx, queries, txName, arg.ToAccountID, arg.Amount, arg.FromAccountID, -arg.Amount)
 		}
 
-		fmt.Println(txName, "make UpdateCustomer 2")
-		_, err = queries.UpdateCustomerBalance(context.Background(), db.UpdateCustomerBalanceParams{
-			ID:     arg.ToAccountID,
-			Amount: arg.Amount,
-		})
+		//case test make deadlock
+		//returnData.FromCustomer, returnData.ToCustomer, err = updateBalance(ctx, queries, txName, arg.ToAccountID, arg.Amount, arg.FromAccountID, -arg.Amount)
+
 		if err != nil {
 			return err
 		}
@@ -119,4 +113,36 @@ func (store *SQLStore) MakeTransferTx(ctx context.Context, arg TransferTxParams)
 		return nil
 	})
 	return returnData, err
+}
+
+type updateBalanceParams struct {
+	FromAccountID int64 `json:"from_account_id"`
+	ToAccountID   int64 `json:"to_account_id"`
+	Amount        int64 `json:"amount"`
+}
+
+func updateBalance(ctx context.Context,
+	queries *db.Queries,
+	txName any,
+	accountID1 int64,
+	amount1 int64,
+	accountID2 int64,
+	amount2 int64,
+) (customer1 db.CustomerAccount, customer2 db.CustomerAccount, err error) {
+	fmt.Println(txName, "make UpdateCustomer ", accountID1, " amount: ", amount1)
+	customer1, err = queries.UpdateCustomerBalance(ctx, db.UpdateCustomerBalanceParams{
+		ID:     accountID1,
+		Amount: amount1,
+	})
+	if err != nil {
+		return
+	}
+
+	fmt.Println(txName, "make UpdateCustomer ", accountID2, " amount: ", amount2)
+	customer2, err = queries.UpdateCustomerBalance(context.Background(), db.UpdateCustomerBalanceParams{
+		ID:     accountID2,
+		Amount: amount2,
+	})
+
+	return
 }
