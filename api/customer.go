@@ -51,7 +51,7 @@ func (server *Server) listCustomerByID(ctx *gin.Context) {
 
 	customer, err := server.store.GetCustomer(ctx, req.CustomerID)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errerrorReturn(err))
+		ctx.JSON(http.StatusNotFound, errerrorReturn(err))
 		return
 	}
 	ctx.JSON(http.StatusOK, customer)

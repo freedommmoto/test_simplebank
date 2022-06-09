@@ -80,7 +80,7 @@ func main() {
 	if err != nil {
 		log.Fatal("cannot connect to db:", err)
 	}
-	store := db.New(conn)
+	store := db.NewStore(conn)
 	server := api.NewServer(store)
 
 	err = server.Start(config.ServerAddress)
