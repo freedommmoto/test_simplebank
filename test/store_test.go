@@ -9,7 +9,7 @@ import (
 )
 
 func TestMakeTransferTx(t *testing.T) {
-	store := NewStore(testDB)
+	store := db.NewStore(testDB)
 
 	customer1 := RandomMakeCustomer(t)
 	customer2 := RandomMakeCustomer(t)
@@ -34,13 +34,13 @@ func TestMakeTransferTx(t *testing.T) {
 	amount := int64(10)
 
 	errs := make(chan error)
-	results := make(chan TransferTxResult)
+	results := make(chan db.TransferTxResult)
 
 	for i := 0; i < testRound; i++ {
 		txName := fmt.Sprintf("tx %d", i+1)
 		go func() {
-			ctx := context.WithValue(context.Background(), txKey, txName)
-			result, err := store.MakeTransferTx(ctx, TransferTxParams{
+			ctx := context.WithValue(context.Background(), db.TxKey, txName)
+			result, err := store.MakeTransferTx(ctx, db.TransferTxParams{
 				FromAccountID: customer1.ID,
 				ToAccountID:   customer2.ID,
 				Amount:        amount,
@@ -125,7 +125,7 @@ func TestMakeTransferTx(t *testing.T) {
 }
 
 func TestMakeTransferTxDeadLock(t *testing.T) {
-	store := NewStore(testDB)
+	store := db.NewStore(testDB)
 
 	customer1 := RandomMakeCustomer(t)
 	customer2 := RandomMakeCustomer(t)
@@ -165,8 +165,8 @@ func TestMakeTransferTxDeadLock(t *testing.T) {
 
 		//move go func() { to down then check if i%2 == 1 { because value i will = testRround
 		go func() {
-			ctx := context.WithValue(context.Background(), txKey, txName)
-			_, err := store.MakeTransferTx(ctx, TransferTxParams{
+			ctx := context.WithValue(context.Background(), db.TxKey, txName)
+			_, err := store.MakeTransferTx(ctx, db.TransferTxParams{
 				FromAccountID: fromAccountID,
 				ToAccountID:   toAccountID,
 				Amount:        amount,
