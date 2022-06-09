@@ -37,7 +37,6 @@ func TestGetCustomer(t *testing.T) {
 				requireBodyMatchAccount(t, recorder.Body, customer)
 			},
 		},
-
 		{
 			name:       "NOTFound",
 			customerID: customer.ID,
@@ -50,7 +49,27 @@ func TestGetCustomer(t *testing.T) {
 				//requireBodyMatchAccount(t, recorder.Body, customer)
 			},
 		},
-		// todo add more cases here
+		{
+			name:       "internalError",
+			customerID: customer.ID,
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetCustomer(gomock.Any(), gomock.Eq(customer.ID)).Times(1).Return(db.CustomerAccount{},
+					sql.ErrConnDone)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				assert.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+		{
+			name:       "badRequest",
+			customerID: -1,
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetCustomer(gomock.Any(), gomock.Any()).Times(0)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				assert.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
 	}
 
 	for i := range testCases {
@@ -71,7 +90,7 @@ func TestGetCustomer(t *testing.T) {
 			//customer.Balance++
 			//t.Logf("customer after mock %v", customer)
 
-			url := fmt.Sprintf("/customer/id/%d", customer.ID)
+			url := fmt.Sprintf("/customer/id/%d", tc.customerID)
 			request, err := http.NewRequest(http.MethodGet, url, nil)
 			assert.NoError(t, err)
 			server.router.ServeHTTP(recorder, request)

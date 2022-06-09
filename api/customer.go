@@ -1,6 +1,8 @@
 package api
 
 import (
+	"database/sql"
+	"fmt"
 	"net/http"
 
 	db "github.com/freedommmoto/test_simplebank/db/sqlc"
@@ -50,10 +52,17 @@ func (server *Server) listCustomerByID(ctx *gin.Context) {
 	}
 
 	customer, err := server.store.GetCustomer(ctx, req.CustomerID)
+	fmt.Println(customer, "customer")
+
 	if err != nil {
-		ctx.JSON(http.StatusNotFound, errerrorReturn(err))
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errerrorReturn(err))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errerrorReturn(err))
 		return
 	}
+
 	ctx.JSON(http.StatusOK, customer)
 }
 
