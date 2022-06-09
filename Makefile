@@ -31,4 +31,7 @@ fulltest:
 server:
 	go run main.go
 
+mock:
+	mockgen -package mockdb -destination db/mock/store.go github.com/freedommmoto/test_simplebank/db/sqlc Store
+
 .PHONY: createdb dropdb postgres migrateup migratdown sqlc test
