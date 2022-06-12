@@ -83,7 +83,7 @@ func TestGetCustomer(t *testing.T) {
 			tc.buildStubs(store)
 
 			//store.EXPECT().GetCustomer(gomock.Any(), gomock.Eq(customer.ID)).Times(1).Return(customer, nil)
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			//case want to test fail if customer add and select is not the same value

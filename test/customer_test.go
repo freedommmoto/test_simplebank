@@ -12,8 +12,10 @@ import (
 )
 
 func RandomMakeCustomer(t *testing.T) db.CustomerAccount {
+	user := RandomMakeUser(t)
+
 	arg := db.CreateCustomerParams{
-		CustomerName: tool.RandomOwner(), // should used random data
+		CustomerName: user.Username,
 		Balance:      tool.RandomMoney(),
 		Currency:     tool.RandomCurrency(),
 	}
