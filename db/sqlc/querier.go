@@ -12,9 +12,11 @@ type Querier interface {
 	CreateCustomer(ctx context.Context, arg CreateCustomerParams) (CustomerAccount, error)
 	CreateEntries(ctx context.Context, arg CreateEntriesParams) (Entry, error)
 	CreateTransaction(ctx context.Context, arg CreateTransactionParams) (Transaction, error)
+	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteCustomer(ctx context.Context, id int64) error
 	GetCustomer(ctx context.Context, id int64) (CustomerAccount, error)
 	GetCustomerForUpdate(ctx context.Context, id int64) (CustomerAccount, error)
+	GetUser(ctx context.Context, username string) (User, error)
 	ListCustomer(ctx context.Context, arg ListCustomerParams) ([]CustomerAccount, error)
 	ListEntries(ctx context.Context, id int64) (Entry, error)
 	ListEntriesByCustomerID(ctx context.Context, customerID int64) ([]Entry, error)
