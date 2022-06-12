@@ -3,6 +3,7 @@ package api
 import (
 	"database/sql"
 	"fmt"
+	"github.com/lib/pq"
 	"net/http"
 
 	db "github.com/freedommmoto/test_simplebank/db/sqlc"
@@ -37,6 +38,14 @@ func (server *Server) makeNewCustomerfunc(ctx *gin.Context) {
 
 	customer, err := server.store.CreateCustomer(ctx, arg)
 	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok {
+			//log.Println(pqErr.Code.Name())
+			switch pqErr.Code.Name() {
+			case "foreign_key_violation", "unique_violation":
+				ctx.JSON(http.StatusForbidden, errerrorReturn(err))
+				return
+			}
+		}
 		ctx.JSON(http.StatusInternalServerError, errerrorReturn(err))
 		return
 	}
