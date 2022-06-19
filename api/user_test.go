@@ -13,12 +13,42 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 )
 
+type eqUserRequestMatcher struct {
+	userRequest db.CreateUserParams
+	password    string
+}
+
+func (e eqUserRequestMatcher) Matches(x interface{}) bool {
+	arg, ok := x.(db.CreateUserParams)
+	if !ok {
+		return false
+	}
+	err := tool.CheckPassword(e.password, arg.HashedPassword)
+	if err != nil {
+		return false
+	}
+	e.userRequest.HashedPassword = arg.HashedPassword
+	return reflect.DeepEqual(e.userRequest, arg)
+}
+
+func (e eqUserRequestMatcher) String() string {
+	return fmt.Sprintf("is equal to %v (%T)", e.userRequest, e.password)
+}
+
+func EqUserParamPassword(userRequest db.CreateUserParams, password string) gomock.Matcher {
+	return eqUserRequestMatcher{userRequest, password}
+}
+
 func TestMakeNewUser(t *testing.T) {
 	userStuct, passwordString := makeNewRandomUser(t)
+	//hashPassword, err := tool.HashPassword(passwordString)
+	//require.NoError(t, err)
 	fmt.Println(userStuct, "userStuct")
+
 	testCases := []struct {
 		name          string
 		body          gin.H
@@ -34,7 +64,12 @@ func TestMakeNewUser(t *testing.T) {
 				"email":     userStuct.Email,
 			},
 			buildStubs: func(store *mockdb.MockStore) {
-				store.EXPECT().CreateUser(gomock.Any(), gomock.Any()).Times(1).Return(userStuct, nil)
+				arg := db.CreateUserParams{
+					Username: userStuct.Username,
+					FullName: userStuct.FullName,
+					Email:    userStuct.Email,
+				}
+				store.EXPECT().CreateUser(gomock.Any(), EqUserParamPassword(arg, passwordString)).Times(1).Return(userStuct, nil)
 			},
 			checkResponse: func(reCoder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, reCoder.Code)
