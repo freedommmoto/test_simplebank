@@ -2,15 +2,18 @@ package tool
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/spf13/viper"
 )
 
 //all config from .env
 type ConfigObject struct {
-	DBDriver      string `mapstructure:"DB_DRIVER"`
-	DBSource      string `mapstructure:"DB_SOUECE"`
-	ServerAddress string `mapstructure:"SERVER_ADDRESS"`
+	DBDriver            string        `mapstructure:"DB_DRIVER"`
+	DBSource            string        `mapstructure:"DB_SOUECE"`
+	ServerAddress       string        `mapstructure:"SERVER_ADDRESS"`
+	TokenConfigKey      string        `mapstructure:"TOKEN_SYMMETRIC_KEY"`
+	TokenLiftTimeConfig time.Duration `mapstructure:"ACCESS_TOKEN_DURATION_TIME"`
 	//value is work only start with uppercase
 }
 type makeNewCustomer struct {
