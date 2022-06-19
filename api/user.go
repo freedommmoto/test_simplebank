@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	db "github.com/freedommmoto/test_simplebank/db/sqlc"
 	"github.com/freedommmoto/test_simplebank/tool"
 	"github.com/gin-gonic/gin"
@@ -28,6 +29,16 @@ type CreateUserParams struct {
 	HashedPassword string `json:"hashed_password"`
 	FullName       string `json:"full_name"`
 	Email          string `json:"email"`
+}
+
+type LoginRequest struct {
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required,min=6"`
+}
+
+type LoginResponse struct {
+	AccessToken string       `json:"access_token"`
+	User        UserResponse `json:"user"`
 }
 
 func (server *Server) makeNewUser(ctx *gin.Context) {
@@ -64,11 +75,47 @@ func (server *Server) makeNewUser(ctx *gin.Context) {
 		return
 	}
 
+	ctx.JSON(http.StatusOK, tranFerUserToUserResponse(user))
+}
+
+func tranFerUserToUserResponse(user db.User) UserResponse {
 	newUser := UserResponse{
 		Username:          user.Username,
 		FullName:          user.FullName,
 		Email:             user.Email,
 		PasswordChangedAt: user.PasswordChangedAt,
 	}
-	ctx.JSON(http.StatusOK, newUser)
+	return newUser
+}
+
+func (server *Server) loginProcess(ctx *gin.Context) {
+	var req LoginRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, err)
+	}
+	userFromDB, err := server.store.GetUser(ctx, req.Username)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errerrorReturn(err))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errerrorReturn(err))
+	}
+
+	err = tool.CheckPassword(req.Password, userFromDB.HashedPassword)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, errerrorReturn(err))
+		return
+	}
+
+	accessToken, err := server.tokenMaker.CreateToken(userFromDB.Username, server.config.TokenLiftTimeConfig)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errerrorReturn(err))
+		return
+	}
+	passLoginResponse := LoginResponse{
+		AccessToken: accessToken,
+		User:        tranFerUserToUserResponse(userFromDB),
+	}
+	ctx.JSON(http.StatusOK, passLoginResponse)
 }

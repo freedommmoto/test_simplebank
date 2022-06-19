@@ -38,6 +38,7 @@ func NewServer(config tool.ConfigObject, store db.Store) (*Server, error) {
 	router.POST("/customer", server.makeNewCustomerfunc)
 	router.POST("/transfers", server.createTransfer)
 	router.POST("/user", server.makeNewUser)
+	router.POST("/login", server.loginProcess)
 
 	server.router = router
 	return server, nil
