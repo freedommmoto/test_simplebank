@@ -18,6 +18,7 @@ type Querier interface {
 	GetCustomerForUpdate(ctx context.Context, id int64) (CustomerAccount, error)
 	GetUser(ctx context.Context, username string) (User, error)
 	ListCustomer(ctx context.Context, arg ListCustomerParams) ([]CustomerAccount, error)
+	ListCustomerWithOwner(ctx context.Context, arg ListCustomerWithOwnerParams) ([]CustomerAccount, error)
 	ListEntries(ctx context.Context, id int64) (Entry, error)
 	ListEntriesByCustomerID(ctx context.Context, customerID int64) ([]Entry, error)
 	ListTransaction(ctx context.Context, id int64) (Transaction, error)

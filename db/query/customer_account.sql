@@ -18,6 +18,13 @@ FROM customer_accounts
 ORDER BY id LIMIT $1
 OFFSET $2;
 
+-- name: ListCustomerWithOwner :many
+SELECT *
+FROM customer_accounts
+WHERE customer_name = $1
+ORDER BY id LIMIT $2
+OFFSET $3;
+
 -- name: DeleteCustomer :exec
 DELETE
 FROM customer_accounts

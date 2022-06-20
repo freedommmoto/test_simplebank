@@ -123,6 +123,49 @@ func (q *Queries) ListCustomer(ctx context.Context, arg ListCustomerParams) ([]C
 	return items, nil
 }
 
+const listCustomerWithOwner = `-- name: ListCustomerWithOwner :many
+SELECT id, customer_name, balance, currency, created_at
+FROM customer_accounts
+WHERE customer_name = $1
+ORDER BY id LIMIT $2
+OFFSET $3
+`
+
+type ListCustomerWithOwnerParams struct {
+	CustomerName string `json:"customer_name"`
+	Limit        int32  `json:"limit"`
+	Offset       int32  `json:"offset"`
+}
+
+func (q *Queries) ListCustomerWithOwner(ctx context.Context, arg ListCustomerWithOwnerParams) ([]CustomerAccount, error) {
+	rows, err := q.db.QueryContext(ctx, listCustomerWithOwner, arg.CustomerName, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []CustomerAccount
+	for rows.Next() {
+		var i CustomerAccount
+		if err := rows.Scan(
+			&i.ID,
+			&i.CustomerName,
+			&i.Balance,
+			&i.Currency,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateCustomer = `-- name: UpdateCustomer :one
 UPDATE customer_accounts
 SET balance = $2
