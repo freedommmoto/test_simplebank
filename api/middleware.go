@@ -16,14 +16,14 @@ const (
 
 func authMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
 	return func(context *gin.Context) {
-		authHader := context.GetHeader(authHeaderKeyWord)
-		if len(authHader) == 0 {
+		authHeader := context.GetHeader(authHeaderKeyWord)
+		if len(authHeader) == 0 {
 			err := errors.New("auth header is not sent from client")
 			context.AbortWithStatusJSON(http.StatusUnauthorized, errerrorReturn(err))
 			return
 		}
 
-		field := strings.Fields(authHader)
+		field := strings.Fields(authHeader)
 		//fmt.Println("authMiddleware ====")
 		//fmt.Println(field)
 
