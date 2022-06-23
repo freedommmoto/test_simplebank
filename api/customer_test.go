@@ -74,6 +74,36 @@ func TestGetCustomer(t *testing.T) {
 			},
 		},
 		{
+			name:       "wrong_user_call",
+			customerID: customer.ID,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthHeader(t, request, tokenMaker, authTypeSupport, user.Username+"test", time.Minute)
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					GetCustomer(gomock.Any(), gomock.Eq(customer.ID)).
+					Times(1).
+					Return(customer, nil)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				assert.Equal(t, http.StatusUnauthorized, recorder.Code)
+			},
+		},
+		{
+			name:       "no_auth",
+			customerID: customer.ID,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetCustomer(gomock.Any(), gomock.Eq(customer.ID)).Times(0)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				//fmt.Println(recorder.Body)
+				assert.Equal(t, http.StatusUnauthorized, recorder.Code)
+			},
+		},
+		{
 			name:       "badRequest",
 			customerID: -1,
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
