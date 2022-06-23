@@ -2,6 +2,7 @@ package api
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/freedommmoto/test_simplebank/token"
 	"github.com/lib/pq"
@@ -56,12 +57,14 @@ func (server *Server) makeNewCustomerfunc(ctx *gin.Context) {
 }
 
 func (server *Server) listCustomerByID(ctx *gin.Context) {
+	//fmt.Println("listCustomerByID ja ja")
 	var req GetCustomerInput
 	if err := ctx.ShouldBindUri(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errerrorReturn(err))
 		return
 	}
 
+	//fmt.Println(req.CustomerID)
 	customer, err := server.store.GetCustomer(ctx, req.CustomerID)
 	fmt.Println(customer, "customer")
 
@@ -74,12 +77,12 @@ func (server *Server) listCustomerByID(ctx *gin.Context) {
 		return
 	}
 
-	//authPayload := ctx.MustGet(authPayloadKey).(*token.Payload)
-	//if authPayload.Username != customer.CustomerName {
-	//	errText := errors.New("unable to get customer don't belong to you user")
-	//	ctx.JSON(http.StatusUnauthorized, errText)
-	//	return
-	//}
+	authPayload := ctx.MustGet(authPayloadKey).(*token.Payload)
+	if authPayload.Username != customer.CustomerName {
+		errText := errors.New("unable to get customer don't belong to you user")
+		ctx.JSON(http.StatusUnauthorized, errText)
+		return
+	}
 
 	ctx.JSON(http.StatusOK, customer)
 }
