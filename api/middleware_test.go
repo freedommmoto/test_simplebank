@@ -11,12 +11,17 @@ import (
 	"time"
 )
 
-func addAuth(t *testing.T, request *http.Request, tokerMaker token.Maker, authType string, username string, duration time.Duration) {
+func addAuthHeader(t *testing.T, request *http.Request, tokerMaker token.Maker, authType string, username string, duration time.Duration) {
 	tokenKey, err := tokerMaker.CreateToken(username, duration)
 	require.NoError(t, err)
-	authHader := fmt.Sprintf("%s %s", authType, tokenKey)
-	request.Header.Set(authHeaderKeyWord, authHader)
 
+	authHader := fmt.Sprintf("%s %s", authType, tokenKey)
+	//
+	//fmt.Println("authHader")
+	//fmt.Println(username)
+	//fmt.Println(authHader)
+
+	request.Header.Set(authHeaderKeyWord, authHader)
 }
 
 func TestServer_authMiddleware(t *testing.T) {
@@ -28,7 +33,7 @@ func TestServer_authMiddleware(t *testing.T) {
 		{
 			name: "http:ok:200",
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuth(t, request, tokenMaker, authTypeSupport, "testuser", time.Minute)
+				addAuthHeader(t, request, tokenMaker, authTypeSupport, "testuser", time.Minute)
 				//fmt.Println(request.Header)
 			},
 			checkReturnData: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -49,7 +54,7 @@ func TestServer_authMiddleware(t *testing.T) {
 		{
 			name: "http:auth_not_support:401",
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuth(t, request, tokenMaker, "API Key", "testuser", time.Minute)
+				addAuthHeader(t, request, tokenMaker, "API Key", "testuser", time.Minute)
 			},
 			checkReturnData: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusUnauthorized, recorder.Code)
@@ -58,7 +63,7 @@ func TestServer_authMiddleware(t *testing.T) {
 		{
 			name: "http:auth_not_sent:401",
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuth(t, request, tokenMaker, "", "testuser", time.Minute)
+				addAuthHeader(t, request, tokenMaker, "", "testuser", time.Minute)
 			},
 			checkReturnData: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusUnauthorized, recorder.Code)
@@ -67,7 +72,7 @@ func TestServer_authMiddleware(t *testing.T) {
 		{
 			name: "http:auth_time_out:401",
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuth(t, request, tokenMaker, authHeaderKeyWord, "testuser", -time.Minute)
+				addAuthHeader(t, request, tokenMaker, authHeaderKeyWord, "testuser", -time.Minute)
 			},
 			checkReturnData: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusUnauthorized, recorder.Code)

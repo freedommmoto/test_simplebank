@@ -2,8 +2,10 @@ package api
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	db "github.com/freedommmoto/test_simplebank/db/sqlc"
+	"github.com/freedommmoto/test_simplebank/token"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -22,11 +24,20 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 		return
 	}
 
-	if !server.validAccount(ctx, req.FromAccountID, req.Currency) {
+	userPayload := ctx.MustGet(authPayloadKey).(*token.Payload)
+	fromCustomer, isValid := server.validAccount(ctx, req.FromAccountID, req.Currency)
+	if !isValid {
+		return
+	}
+	_, isValid = server.validAccount(ctx, req.ToAccountID, req.Currency)
+	if !isValid {
 		return
 	}
 
-	if !server.validAccount(ctx, req.ToAccountID, req.Currency) {
+	//case have account but don't have permission for that account
+	if fromCustomer.CustomerName != userPayload.Username {
+		err := errors.New("unable to Transfer from not user account ")
+		ctx.JSON(http.StatusBadRequest, errerrorReturn(err))
 		return
 	}
 
@@ -45,22 +56,22 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 
 }
 
-func (server *Server) validAccount(ctx *gin.Context, customerID int64, currency string) bool {
+func (server *Server) validAccount(ctx *gin.Context, customerID int64, currency string) (db.CustomerAccount, bool) {
 	customer, err := server.store.GetCustomer(ctx, customerID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errerrorReturn(err))
-			return false
+			return customer, false
 		}
 
 		ctx.JSON(http.StatusInternalServerError, errerrorReturn(err))
-		return false
+		return customer, false
 	}
 
 	if customer.Currency != currency {
 		err := fmt.Errorf("account [%d] currency mismatch: %s vs %s", customer.ID, customer.Currency, currency)
 		ctx.JSON(http.StatusBadRequest, errerrorReturn(err))
-		return false
+		return customer, false
 	}
-	return true
+	return customer, true
 }

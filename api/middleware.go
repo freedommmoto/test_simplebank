@@ -17,6 +17,8 @@ const (
 func authMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		authHeader := context.GetHeader(authHeaderKeyWord)
+		//fmt.Println("authMiddleware api/middleware.go:21")
+		//fmt.Println(authHeader)
 		if len(authHeader) == 0 {
 			err := errors.New("auth header is not sent from client")
 			context.AbortWithStatusJSON(http.StatusUnauthorized, errerrorReturn(err))
