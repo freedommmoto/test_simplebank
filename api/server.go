@@ -33,12 +33,16 @@ func NewServer(config tool.ConfigObject, store db.Store) (*Server, error) {
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterValidation("currency", validCurrency)
 	}
-	router.GET("/customer", server.listCustomer)
-	router.GET("/customer/id/:id", server.listCustomerByID)
-	router.POST("/customer", server.makeNewCustomerfunc)
-	router.POST("/transfers", server.createTransfer)
+
 	router.POST("/user", server.makeNewUser)
 	router.POST("/login", server.loginProcess)
+
+	authRouter := router.Group("/").Use(authMiddleware(server.tokenMaker))
+
+	authRouter.GET("/customer", server.listCustomer)
+	authRouter.GET("/customer/id/:id", server.listCustomerByID)
+	authRouter.POST("/customer", server.makeNewCustomerfunc)
+	authRouter.POST("/transfers", server.createTransfer)
 
 	server.router = router
 	return server, nil

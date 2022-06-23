@@ -169,6 +169,21 @@ func (mr *MockStoreMockRecorder) ListCustomer(arg0, arg1 interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCustomer", reflect.TypeOf((*MockStore)(nil).ListCustomer), arg0, arg1)
 }
 
+// ListCustomerWithOwner mocks base method.
+func (m *MockStore) ListCustomerWithOwner(arg0 context.Context, arg1 db.ListCustomerWithOwnerParams) ([]db.CustomerAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListCustomerWithOwner", arg0, arg1)
+	ret0, _ := ret[0].([]db.CustomerAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListCustomerWithOwner indicates an expected call of ListCustomerWithOwner.
+func (mr *MockStoreMockRecorder) ListCustomerWithOwner(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCustomerWithOwner", reflect.TypeOf((*MockStore)(nil).ListCustomerWithOwner), arg0, arg1)
+}
+
 // ListEntries mocks base method.
 func (m *MockStore) ListEntries(arg0 context.Context, arg1 int64) (db.Entry, error) {
 	m.ctrl.T.Helper()
