@@ -2,3 +2,4 @@
 .idea/dataSources.xml
 test_simplebank
 profile.cov
+_backup_app.env
